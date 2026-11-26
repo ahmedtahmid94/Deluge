@@ -32,7 +32,7 @@ Open-Meteo is free for non-commercial use and needs no API key. Two endpoints ar
 
 Useful parameters:
 
-- `timezone=America/New_York` (or `auto`). Without it, times are in GMT.
+- `timezone=America/New_York` (or `auto`). Without it, times are in GMT. The docs add: "Daylight saving time (DST) changes within the requested range are ignored". Request `timeformat=unixtime` and convert in code so beach hours stay right in DST weeks.
 - `temperature_unit=fahrenheit`, `wind_speed_unit=mph` (`kmh` default; also `ms`, `kn`), `precipitation_unit=inch`.
 - `forecast_days` defaults to 7, maximum 16. `past_days` 0–92.
 - `models` defaults to automatic "best match". For Florida the US models (GFS/HRRR) are among the options.
@@ -68,7 +68,7 @@ Snow codes (71–77, 85–86) are irrelevant for South Florida, but the code sho
 Parameters:
 
 - `cell_selection` = `land` | `sea` | `nearest`. **Use `sea`** so that a coordinate on the sand resolves to an ocean grid cell rather than a land cell with no data.
-- `length_unit=imperial` returns wave heights in feet.
+- `length_unit=imperial` returns wave heights in feet. **`sea_surface_temperature` still comes back in °C** (verified with a live request on 2026-11-25), so convert it.
 - `forecast_days`: the docs page is inconsistent. It says the default is 5 and its parameter table gives 0–8, while its intro talks of 7 and 16. **Request 7 days and treat missing or `null` values as "no marine data".** Do not assume all 7 days are filled.
 
 Models and resolution: MeteoFrance MFWAM (~8 km), ECMWF WAM (9 km), NCEP GFS Wave (~16–25 km), DWD EWAM (~5 km); SST from MeteoFrance (~8 km).
@@ -121,6 +121,7 @@ Keep the list in one JSON file (`src/data/beaches.json`) with an `id`, `name`, `
 | Dangerous heat | `apparent_temperature` ≥ 103 °F → cap at "Poor"; ≥ 125 °F → No-go | NWS heat index categories: Caution 80–90 °F, Extreme Caution 90–103 °F, Danger 103–124 °F, Extreme Danger ≥ 125 °F. NWS also notes that the values are for shade and **full sun can add up to 15 °F**. |
 | Rough surf (heuristic) | `wave_height` ≥ 6 ft → No-go for swimming; ≥ 4 ft → cap at "Fair" | **Heuristic** for surf comfort only. **Decision D1: this is not a rip-current estimate**, and the UI must never call it one. Rip currents form in calm-looking water too. |
 | Strong gusts (heuristic) | `wind_gusts_10m` ≥ 35 mph → cap at "Poor" | **Heuristic**, anchored to Beaufort (see below). |
+| Steady rain (heuristic, added 2026-11-26) | `weather_code` 61–67 or 80–82 **and** `precipitation_probability` ≥ 70 % → cap at "Poor" | Without this, a real all-day-rain forecast (South Beach, 2026-11-25) scored "Fair": rain is only 30 % of the weight. Found by running the reference scorer on live data. |
 
 ### Comfort components (per hour, 0–100 each, weighted)
 
@@ -153,8 +154,9 @@ A user setting ("I burn easily") can turn UV into a penalty later.
 2. Score every hour.
 3. Find the **best window**: the longest contiguous run of hours ≥ 60, and among runs of 3 h or more, the one with the highest mean.
 4. **Day score** = mean of the best 4 consecutive hours (or of all beach hours if fewer). **Day verdict** comes from the day score, but if any gate fires during the best window, the verdict is capped by that gate.
-5. Bands: **Great** ≥ 80, **Good** 65–79, **Fair** 50–64, **Poor** 30–49, **No-go** < 30 or a No-go gate across the whole day.
-6. **Reasons**: the two components that lost the most weighted points across the window, translated to plain text ("Windy: gusts to 28 mph", "Storms likely after 2 pm").
+5. **If no best window exists** (no 3 consecutive hours scoring 60 or more), the day verdict is at most **Poor** (added 2026-11-26).
+6. Bands: **Great** ≥ 80, **Good** 65–79, **Fair** 50–64, **Poor** 30–49, **No-go** < 30 or a No-go gate across the whole day.
+7. **Reasons**: the two components that lost the most weighted points across the window, translated to plain text ("Windy: gusts to 28 mph", "Storms likely after 2 pm").
 
 ### Forecast confidence
 

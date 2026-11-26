@@ -1,0 +1,34 @@
+/* Beach Day design tokens (light, dark, increased contrast, reduced transparency).
+   Glass is for chrome only (HIG: no Liquid Glass in the content layer). */
+:root {
+  --bd-bg-top: #fdf6e3; --bd-bg-bottom: #7fc8f8;           /* sand -> sky */
+  --bd-text: #0b1f33; --bd-text-secondary: #33506b;
+  --bd-accent: #005f92;                                     /* sea blue, 4.5:1+ on card */
+  --bd-card: #ffffff;                                       /* content layer: opaque */
+  --bd-glass-fill: rgb(255 255 255 / 0.62);                 /* >= 0.39 needed for 4.5:1 (a11y check) */
+  --bd-glass-blur: 20px;
+  --bd-glass-edge: rgb(255 255 255 / 0.7);
+  --bd-radius-card: 20px; --bd-radius-control: 999px;
+  --bd-space-2: 8px; --bd-space-4: 16px;
+  --bd-focus: #0b1f33;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bd-bg-top: #06223a; --bd-bg-bottom: #023e8a; --bd-text: #f2f7fb; --bd-text-secondary: #c3d4e3;
+          --bd-accent: #8fd3ff; --bd-card: #0e2a44; --bd-glass-fill: rgb(14 42 68 / 0.66); --bd-glass-edge: rgb(255 255 255 / 0.18); --bd-focus: #f2f7fb; }
+}
+body { margin: 0; min-height: 100vh; color: var(--bd-text); font: 1.0625rem/1.35 -apple-system, system-ui, sans-serif;
+       background: linear-gradient(var(--bd-bg-top), var(--bd-bg-bottom)); }
+.glass {                                                   /* header, tab bar, sheet chrome */
+  background: var(--bd-glass-fill);
+  -webkit-backdrop-filter: blur(var(--bd-glass-blur)) saturate(160%);
+  backdrop-filter: blur(var(--bd-glass-blur)) saturate(160%);
+  box-shadow: inset 0 1px 0 var(--bd-glass-edge), 0 8px 24px rgb(0 0 0 / 0.12);
+  border-radius: var(--bd-radius-control);
+}
+.card { background: var(--bd-card); border-radius: var(--bd-radius-card); padding: var(--bd-space-4); }
+:focus-visible { outline: 3px solid var(--bd-focus); outline-offset: 2px; }
+/* Fallbacks: no backdrop-filter support, Reduce Transparency, Increase Contrast -> solid surfaces. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { .glass { background: var(--bd-card); } }
+@media (prefers-reduced-transparency: reduce) { .glass { background: var(--bd-card); -webkit-backdrop-filter: none; backdrop-filter: none; } }
+@media (prefers-contrast: more) { .glass { background: var(--bd-card); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: 0 0 0 2px var(--bd-text); } }
+@media (prefers-reduced-motion: reduce) { * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; } }

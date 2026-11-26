@@ -15,7 +15,8 @@ Request, always from the `forecast` function, never the browser:
 - `latitude`, `longitude` from `beaches.json` only. Several coordinates can be comma-separated for an all-beaches overview.
 - `hourly=temperature_2m,apparent_temperature,precipitation_probability,precipitation,weather_code,cloud_cover,wind_speed_10m,wind_gusts_10m,wind_direction_10m,uv_index,uv_index_clear_sky,is_day,sunshine_duration`
 - `daily=weather_code,temperature_2m_max,precipitation_probability_max,precipitation_sum,wind_speed_10m_max,wind_gusts_10m_max,uv_index_max,sunrise,sunset,daylight_duration,sunshine_duration`
-- `timezone=America/New_York`, `temperature_unit=fahrenheit`, `wind_speed_unit=mph`, `precipitation_unit=inch`, `forecast_days=7` (maximum 16).
+- `timezone=America/New_York` with **`timeformat=unixtime`**. The docs say "DST changes within the requested range are ignored" for ISO times, so format the hours with `Intl` (America/New_York) instead.
+- `temperature_unit=fahrenheit`, `wind_speed_unit=mph`, `precipitation_unit=inch`, `forecast_days=7` (maximum 16).
 - `models`: leave on automatic "best match" unless beach-conditions-analyst asks otherwise.
 
 WMO `weather_code` values:
@@ -35,6 +36,9 @@ WMO `weather_code` values:
 | 96, 99 | Thunderstorm with hail |
 
 Handling:
+- Units come back in `hourly_units`. mph is spelled **`"mp/h"`**; assert the unit strings.
+- Errors: HTTP 400 with `{"error":true,"reason":"…"}`. Log the reason server-side only.
 - Treat any missing or `null` value as unknown.
 - Validate array lengths match `hourly.time`.
 - Keep the exact variable list in `src/shared/openmeteo.ts` and in contract-test fixtures.
+- Verified examples and real fixtures: `knowledge/open-meteo-integrator/`.

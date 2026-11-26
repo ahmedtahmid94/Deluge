@@ -1,0 +1,19 @@
+{
+  "verdict.great": "Great — sunny and light winds.",
+  "verdict.noGo": "Not a beach day — thunderstorms most of the day.",
+  "window.best": "Best 9 am – 1 pm",
+  "reason.storms": "Storms likely after 2 pm",
+  "reason.wind": "Windy: gusts to 28 mph",
+  "safety.ripCurrent": "Rip current risk: check the NWS forecast",
+  "safety.lightning": "Thunderstorms likely from 3 pm. When thunder roars, go indoors.",
+  "safety.heat": "Dangerous heat this afternoon. Limit time in the sun and drink water.",
+  "state.offline": "You're offline. Showing the forecast from 8:40 am.",
+  "state.error": "Unable to load the forecast. Try again in a moment.",
+  "button.retry": "Try again",
+  "button.install": "Install Beach Day",
+  "ios.installHint": "To install, tap Share, then Add to Home Screen.",
+  "console.approve.title": "Commit 2 files to main?",
+  "console.approve.message": "This redeploys the live site in about a minute. You can roll back from Netlify if needed.",
+  "console.approve.confirm": "Commit",
+  "console.approve.cancel": "Cancel"
+}

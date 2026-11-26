@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Review proposal — Agent Console</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  html { scroll-padding-top: 64px; scroll-padding-bottom: 72px; }        /* WCAG technique C43 */
+  body { margin: 0; font: 16px/1.5 system-ui, sans-serif; background: #fdf6e3; color: #0b1f33; }
+  header { position: sticky; top: 0; height: 56px; background: rgba(255,255,255,.92); display: flex; align-items: center; padding: 0 16px; }
+  /* scroll-padding alone is not enough at the end of the page: the last controls can't scroll above the
+     fixed toast. Reserve space equal to the toast height (found by the 2.4.11 check in 02-axe-and-dialog.mjs). */
+  main { padding: 16px 16px 88px; }
+  .file { min-height: 260px; }
+  button { min-height: 44px; min-width: 44px; padding: 0 16px; font: inherit; }
+  :focus-visible { outline: 3px solid #0b1f33; outline-offset: 2px; }
+  .toast { position: fixed; bottom: 0; left: 0; right: 0; height: 64px; background: #0b1f33; color: #fff; display: flex; align-items: center; padding: 0 16px; }
+  .toast button { color: #0b1f33; background: #fff; border: 0; margin-left: auto; }
+  ins { background: #d8f5d0; text-decoration: none; } del { background: #fde2e2; }
+</style></head>
+<body>
+<header><h1 style="font-size:1.1rem;margin:0">Review changes</h1></header>
+<main>
+  <p>Proposal from <strong>pwa-engineer</strong>: Add UV chip to day cards.</p>
+  <section class="file" aria-labelledby="f1"><h2 id="f1">src/app/dayCard.ts (updated)</h2>
+    <pre><del><span class="visually-hidden">removed: </span>- export const chip = null;</del>
+<ins><span class="visually-hidden">added: </span>+ export const chip = uvChip(day);</ins></pre></section>
+  <section class="file" aria-labelledby="f2"><h2 id="f2">src/app/uvChip.ts (created)</h2><p><a href="#f2">Expand file</a></p></section>
+  <button id="approve" type="button">Approve and commit</button>
+  <button id="reject" type="button">Reject</button>
+</main>
+<div class="toast" role="status">New version available <button type="button">Reload</button></div>
+<dialog id="confirm" role="alertdialog" aria-modal="true" aria-labelledby="ct" aria-describedby="cd">
+  <h2 id="ct">Commit 2 files to main?</h2>
+  <p id="cd">This commits straight to main and redeploys the live site.</p>
+  <button id="cancel" type="button">Cancel</button>
+  <button id="do-commit" type="button">Approve and commit</button>
+</dialog>
+<style>.visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}</style>
+<script>
+  const dlg = document.getElementById("confirm");
+  let opener = null;
+  document.getElementById("approve").addEventListener("click", (e) => {
+    opener = e.currentTarget; dlg.showModal();
+    document.getElementById("cancel").focus();            // APG: least destructive action first
+  });
+  document.getElementById("cancel").addEventListener("click", () => dlg.close());
+  dlg.addEventListener("close", () => opener?.focus());    // APG: return focus to the invoker
+</script>
+</body></html>

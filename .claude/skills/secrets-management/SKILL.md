@@ -17,7 +17,8 @@ Secrets:
 - `INTERNAL_JOB_SECRET`
 
 Rules:
-- Set them in the Netlify UI or CLI as env vars with **Functions scope only, not Builds**, marked "Contains secret values" where the plan offers it. Never in `netlify.toml`, `.env` files in the repo, code, tests or docs.
+- Set them in the Netlify UI or CLI as env vars. Never in `netlify.toml`, `.env` files in the repo, code, tests or docs.
+- **Free plan caveat (D3):** scopes are Pro-only, so secrets are also visible to builds. Keep build-time code human-only (the deny-list), keep the bundle scan, and audit dependency install scripts. Scope to Functions only after an upgrade.
 - Read them only inside functions (`Netlify.env.get(...)` or `process.env`). Never prefix one with `VITE_`, never pass one to the client, never put one in a response.
 - Deploy Previews and branch deploys get a separate low-limit Anthropic key and **no GitHub token**, so a preview can't commit.
 - Logs: never log secrets, request bodies or message contents by default. Log IDs and status codes instead.

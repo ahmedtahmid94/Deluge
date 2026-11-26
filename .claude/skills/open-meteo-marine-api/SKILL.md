@@ -15,7 +15,8 @@ Request:
 - `hourly=wave_height,wave_period,wave_direction,wind_wave_height,swell_wave_height,swell_wave_period,sea_surface_temperature`
 - Optional daily: `wave_height_max,wave_period_max,wave_direction_dominant`
 - `cell_selection=sea`, so a beach point resolves to an ocean grid cell. Use `marineLat`/`marineLon` from `beaches.json` when set.
-- `length_unit=imperial` (feet), `timezone=America/New_York`, `forecast_days=7`.
+- `length_unit=imperial` gives wave heights in feet, but **`sea_surface_temperature` stays in °C** (verified live 2026-11-25). Convert to °F in code and assert the `°C` unit string.
+- `timezone=America/New_York` with `timeformat=unixtime` (DST-safe), `forecast_days=7`.
 - The docs disagree on the maximum `forecast_days` (default 5, table 0–8, intro 16). Expect partial or `null` data on later days.
 
 Limits, quoted from the docs:

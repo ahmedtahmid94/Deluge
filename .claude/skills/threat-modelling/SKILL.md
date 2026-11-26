@@ -21,7 +21,7 @@ Threats and controls (docs/04, section 5):
 | Threat | Controls |
 |---|---|
 | A stranger uses the console | Password gate, rate limits, budget |
-| A leaked secret | Functions-scoped env vars only; bundle scan; generic errors |
+| A leaked secret | Netlify env vars (Functions-scoped needs Pro; on Free build code stays human-only); bundle scan; generic errors |
 | **An agent widens its own access through code** (edits a function to print env, removes auth, adds a dependency, edits CI) | Path allow-list, enforced at proposal and approval; human review of the diff; token without Workflows |
 | Prompt injection from repo text or chat | Controls in code; human approval; repo text treated as data |
 | Replay or double commit | Conditional write; `force: false` |

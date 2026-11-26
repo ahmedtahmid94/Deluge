@@ -16,6 +16,7 @@ The full spec is in `docs/01-use-case-and-beach-scoring.md`. Implement it in `sr
 - Feels-like ≥103 °F → cap at Poor; ≥125 °F → No-go.
 - Waves ≥6 ft → No-go for swimming; ≥4 ft → cap at Fair. This is a surf-comfort heuristic, **not a rip-current estimate**.
 - Gusts ≥35 mph → cap at Poor.
+- **Steady rain:** WMO 61–67 or 80–82 with a rain chance of 70 % or more → cap the hour at Poor. Added 2026-11-26: without it, a real all-day-rain fixture scored "Fair".
 
 **Comfort components (weight):**
 
@@ -36,6 +37,10 @@ Components are linear between the full and zero points. **UV is advice, not a pe
 - Day score is the mean of the best 4 consecutive hours. Gates in the window cap the verdict.
 
 **Bands:** Great ≥80, Good 65–79, Fair 50–64, Poor 30–49, No-go <30.
+
+**No best window → the day is at most Poor.** Added 2026-11-26: a day without 3 consecutive hours scoring 60 or more can't be rated Fair or better.
+
+The reference implementation and tests are in `knowledge/beach-conditions-analyst/examples/`.
 
 **Reasons:** the two components that lose the most weighted points, in plain words.
 

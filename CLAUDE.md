@@ -4,6 +4,7 @@ Beach Day is a mobile-first **PWA on Netlify** that tells you whether today and 
 
 - **Architecture (fixed):** a static Vite front end, **Netlify Functions** for all Open-Meteo, Claude and GitHub calls, Netlify Blobs for state, and **no other servers**.
 - **Docs:** start at `docs/README.md`. It holds the index and the lead's decisions. The team roster is `docs/expert-roster.md`.
+- **Knowledge:** each agent has `knowledge/<agent-name>/docs/` (notes from official docs, with sources) and `examples/` (verified worked examples). Agents read their folder before answering and prefer it over memory. `knowledge/verify.sh` reruns the examples.
 
 ## Lead decisions (these override everything else)
 
@@ -75,7 +76,7 @@ Reviewers add `verdict: approve | approve-with-nits | changes-required` and find
 
 - Read the relevant `docs/` file before working. Keep docs accurate when you change behaviour.
 - **Code:** strict TypeScript, pure domain modules in `src/shared/`, and validation at every boundary.
-- **Secrets:** none in the browser, the repo, logs or docs. They are Functions-scoped Netlify env vars, referred to by name only.
+- **Secrets:** none in the browser, the repo, logs or docs. They are Netlify env vars, referred to by name only. On the Free plan they can't be scoped to Functions (Pro-only), so build-time code stays human-only (see docs/03).
 - **Accessibility:** WCAG 2.2 AA is required. Verdicts and diffs never rely on colour alone.
 - **Safety:** never call a day "safe"; follow the safety-communication rules; decision D1 always applies.
 - **Tests:** never skip or weaken a test to get green. Report failures.

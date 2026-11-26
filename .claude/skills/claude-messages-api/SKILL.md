@@ -9,7 +9,7 @@ metadata:
 ---
 # Claude Messages API (from Netlify Functions)
 
-- SDK: `@anthropic-ai/sdk`. `new Anthropic()` reads `ANTHROPIC_API_KEY` from the Functions-scoped env var. **Never call the API from the browser.**
+- SDK: `@anthropic-ai/sdk`. `new Anthropic()` reads `ANTHROPIC_API_KEY` from the Netlify env var (Functions-scoped once on Pro). **Never call the API from the browser.**
 - Endpoint: `client.messages.create` / `client.messages.stream` (`POST /v1/messages`).
 - Request shape:
   - `system` is the agent file's body plus `CONSOLE_RULES`, as a text block with `cache_control: { type: "ephemeral" }` (prompt caching for repeated turns);

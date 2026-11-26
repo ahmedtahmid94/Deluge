@@ -18,8 +18,14 @@ metadata:
 | `AGENT_DAILY_BUDGET` | Functions | all (lower in previews) |
 
 Rules:
-- Netlify scopes are Builds, Functions, Runtime and Post processing. **Secrets get Functions only**, so build scripts and dependencies can't read them and the bundler can't inline them.
-- Mark secrets "Contains secret values" where the plan offers it (check on Free, decision D3).
+- Netlify scopes are Builds, Functions, Runtime and Post processing. **Scoping is a Pro-plan feature** ("On the Pro plan and above, you can set specific scopes"). On our **Free plan (D3), every variable, secrets included, is also visible to builds.** Mitigations:
+  - package manifests, lockfiles, `scripts/**` and `vite.config.*` stay human-only;
+  - no `VITE_` prefix on secrets;
+  - a bundle secret scan;
+  - review every new dependency's install scripts.
+
+  Scoping secrets to Functions only is the target once the lead decides to upgrade.
+- Mark secrets "Contains secret values" if the Free plan offers it.
 - Deploy contexts: Production, Deploy Previews, Branch deploys, Local development (`netlify dev`).
 - Set values with the Netlify UI or CLI, never in `netlify.toml` or the repo.
 - Document every variable in `docs/03` when adding one. Security-engineer reviews any new secret.

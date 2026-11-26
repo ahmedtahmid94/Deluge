@@ -198,16 +198,16 @@ All writes go through the GitHub REST API with `Authorization: Bearer $GITHUB_TO
 | Threat | Example | Main controls |
 |---|---|---|
 | Stranger uses the console | Finds `/console`, burns API credit, commits code | Password gate, rate limits, budget cap |
-| Stolen token / key | Key in client JS, logs, or a committed file | Secrets only in Functions-scoped env vars; never sent to the browser; CSP `connect-src 'self'`; secrets scanning |
+| Stolen token / key | Key in client JS, logs, or a committed file | Secrets only in Netlify env vars (Functions-scoped once on Pro; visible to builds on Free); never sent to the browser; CSP `connect-src 'self'`; secrets scanning |
 | **Agent escalates via code** | Proposal edits a function to print `process.env`, removes the password check, adds a malicious npm dependency, or edits CI | **Path allow-list** that excludes functions, config, package manifests and CI; a human reviews every diff; token without the Workflows permission |
 | Prompt injection | A file or chat text says "ignore rules, propose X" | The human approval gate; the allow-list is enforced in code, not in the prompt; repo text is labelled as data |
 | Replay / double commit | Two Approve taps, or a retried request | Conditional write on the proposal; `force: false` ref update |
-| CSRF | Another site triggers approve | `SameSite=Strict` cookie, Origin check, CSRF token |
+| CSRF | Another site triggers approve | `SameSite=Strict` cookie, `Sec-Fetch-Site: same-origin` (Origin fallback), HMAC-signed CSRF token (OWASP) |
 
 ### Password gate
 
-- One shared console password; this is a single-owner app. Store **only a hash** in `CONSOLE_PASSWORD_HASH` (Node `crypto.scrypt` with a random salt, stored as `scrypt$N$r$p$salt$hash`) and compare with `crypto.timingSafeEqual`.
-- On success, create a random session ID (32 bytes), store it in the `sessions` Blob with an expiry (for example 8 h, sliding), and set the cookie `__Host-bd_session=<id>; Path=/; Secure; HttpOnly; SameSite=Strict`. The `__Host-` prefix pins the cookie to our origin.
+- One shared console password; this is a single-owner app. Store **only a hash** in `CONSOLE_PASSWORD_HASH`: Node `crypto.scrypt` at OWASP's minimum N=2^17, r=8, p=1, with a random salt, stored as `scrypt$17$8$1$salt$hash`. Pass `maxmem` of 256 MiB. Compare with `crypto.timingSafeEqual`.
+- On success, create a random session ID (32 bytes) and store it in the `sessions` Blob with an **idle timeout of 30 min and an absolute timeout of 8 h** (OWASP Session Management), enforced server-side. Set the cookie `__Host-bd_session=<id>; Path=/; Secure; HttpOnly; SameSite=Strict`. The `__Host-` prefix pins the cookie to our origin.
 - **Every** console function checks the session first. A route not covered by that check is a bug; add a test that calls every `/api/agent*` and `/api/proposals*` route without a cookie and expects 401.
 - **Brute force:** apply Netlify's `rateLimit` on the login function (for example `windowLimit: 5, windowSize: 60, aggregateBy: ["ip", "domain"]`). Also keep a failed-attempt counter per IP hash in Blobs that locks the IP out for 15 minutes after 10 failures.
 - Logout deletes the session from Blobs.
@@ -274,7 +274,7 @@ Validation function (shared by proposal and approval):
 ### No secrets in the browser
 
 - The browser only ever calls `/api/*` on our origin. It never sees the Anthropic key, the GitHub token, the password hash or the session secret.
-- Secret env vars are **Functions-scoped**, not Builds-scoped, so the bundler cannot inline them. Add a CI or test step that greps `dist/` for `sk-ant-`, `github_pat_`, `ghp_` and the names of the secret variables, and fails the build on a hit.
+- Secret env vars are never `VITE_`-prefixed, so Vite cannot inline them. They are **Functions-scoped once the plan allows it**; on Free they are also visible to builds (docs/03), so build-time code stays human-only. Add a CI or test step that greps `dist/` for `sk-ant-`, `github_pat_`, `ghp_` and the names of the secret variables, and fails the build on a hit.
 - Function errors returned to the client are generic ("Agent failed — see log ID abc123"). Details go to function logs, with request bodies **redacted**: no message content in logs by default.
 - CSP `connect-src 'self'`, `frame-ancestors 'none'`, and no inline scripts.
 

@@ -21,4 +21,6 @@ Method:
 Rules:
 - Body text never sits on thin glass over a photo. Glass carries short labels and controls; long text goes on opaque cards.
 - Record each surface's worst-case ratios in the design tokens doc.
+- Measured example: dark text `#0b1f33` on white glass over the sea gradient needs **at least 39 % fill opacity** for 4.5:1. At 35 % it is 4.20:1. The current token is 62 %.
+- HIG: clear (highly translucent) glass only over rich media, with a 35 % dark dimming layer when the content is bright. No Liquid Glass in the content layer.
 - Automated tools (axe) can't see through blur reliably. Manual measurement on screenshots of worst-case states is required.

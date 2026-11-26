@@ -11,7 +11,7 @@ metadata:
 
 - Use `@playwright/test` with projects for the `iPhone 15` and `Pixel 7` device presets, plus desktop Chromium for keyboard tests.
 - In CI, pass `--trace off`. Turn traces on only to debug a failing test.
-- Mock `/api/*` with `page.route()` and fixture JSON for deterministic results. Run one smoke suite unmocked against the Deploy Preview.
+- Mock `/api/*` with `context.route()` and fixture JSON for deterministic results. **Once the service worker controls the page, `page.route()` doesn't see requests the worker handles** (Playwright docs), so use `context.route` or `serviceWorkers: "block"` in tests that aren't about the worker. Run one smoke suite unmocked against the Deploy Preview.
 
 Beach Day flows:
 - pick a beach → verdict and day strip render → the choice persists;

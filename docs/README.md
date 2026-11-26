@@ -13,6 +13,7 @@ These docs are the shared context for the team of expert agents that will build 
 | 03 | [Architecture: static site + Netlify Functions](03-architecture.md) | Repo layout, `netlify.toml`, functions, Netlify Blobs, env vars, deploy flow |
 | 04 | [Agent Console: design, security, long jobs](04-agent-console.md) | Agent listing, chat over the Claude API, propose/approve/commit, auth, tokens, allow-list, rate limits, background jobs |
 | 05 | [Testing and accessibility](05-testing-and-accessibility.md) | Vitest, Playwright, axe, security tests, WCAG 2.2 AA |
+| — | [Agent knowledge](../knowledge/README.md) | Per-agent reference notes from official docs, verified examples, and the findings from verification |
 | — | [Expert roster](expert-roster.md) | Who is on the agent team, what each role does, the skills they share, and who reviews what. The agents live in `.claude/agents/` and the skills in `.claude/skills/`; see `CLAUDE.md` |
 
 ## Key decisions (summary)
@@ -27,7 +28,7 @@ These docs are the shared context for the team of expert agents that will build 
    - a password gate (scrypt hash, `__Host-` HttpOnly SameSite=Strict session cookie, rate-limited login);
    - a fine-grained GitHub token for **this repo only** (Contents read/write and Metadata read; **no Workflows**; 90-day expiry);
    - a **path allow-list** that blocks functions, config, headers, package manifests, scripts and CI, so an agent cannot widen its own access;
-   - secrets in **Functions-scoped** env vars only, and a CI scan of the build output for leaked keys;
+   - secrets only in Netlify env vars (Functions-scoped needs Pro; on Free, build-time code stays human-only), and a CI scan of the build output for leaked keys;
    - Netlify per-function `rateLimit`, a daily budget, and an Anthropic spend limit. → 04
 7. **Agent metadata comes from `.claude/agents/*.md`** (Claude Code subagent format: `name` and `description` required, optional `model` of `sonnet`/`opus`/`haiku`/`fable`/full ID/`inherit`). "Personality" is a `## Personality` section in the body. A build step validates the files and emits public metadata; the console maps model aliases to API IDs (default `claude-opus-5-5`). → 04
 8. **WCAG 2.2 AA:**
@@ -47,6 +48,8 @@ These docs are the shared context for the team of expert agents that will build 
 | D4 | **Use a fine-grained personal access token** for GitHub (not a GitHub App or OAuth app). | One repo only, Contents read/write plus Metadata read, no Workflows, 90-day expiry. (04) |
 
 ## Open questions for the team
+
+- **Decision needed (security vs. D3):** on the Netlify Free plan, env vars can't be scoped to Functions ("Pro plan and above"), so secrets are visible to builds. Mitigations are in docs/03. Choose between staying on Free with those mitigations and moving to Pro for scoped secrets. (03, `knowledge/netlify-engineer`)
 
 - **Marine `forecast_days`:** the Open-Meteo docs disagree on the maximum. Check against the live API and handle partial days. (01)
 - **Beach coordinates** in the seed list are approximate. Check them on a map, and add offshore marine points where needed. (01)

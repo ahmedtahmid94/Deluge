@@ -148,7 +148,7 @@ Each skill has a short definition and the agents that need it. **Owner** is the 
 |---|---|---|---|
 | Threat modelling | Strangers, leaked secrets, an agent widening its own access, prompt injection, replay, CSRF | security-engineer | software-architect, agent-console-engineer |
 | Authentication and sessions | scrypt password hash, `__Host-` HttpOnly SameSite=Strict cookies, lockout, CSRF tokens, Origin checks | security-engineer | agent-console-engineer |
-| Secrets management | Functions-scoped secret env vars, rotation, no secrets in the bundle or logs, build-output scans | security-engineer | netlify-engineer, agent-console-engineer |
+| Secrets management | Secret env vars (Functions-scoped on Pro; build-code lockdown on Free), rotation, no secrets in the bundle or logs, build-output scans | security-engineer | netlify-engineer, agent-console-engineer |
 | GitHub fine-grained tokens | One repo, Contents read/write and Metadata read, no Workflows, expiry and rotation | security-engineer | agent-console-engineer |
 | Path allow-list enforcement | Normalisation, traversal and file-mode rejection, deny lists, size limits, tests | security-engineer | agent-console-engineer, qa-engineer |
 | Prompt-injection defence | Controls in code, not in prompts; repo text treated as data; the human approval gate | security-engineer | agent-console-engineer, meta-agent |

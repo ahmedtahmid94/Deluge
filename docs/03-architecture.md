@@ -158,15 +158,23 @@ Set these in the Netlify UI or CLI, **never in `netlify.toml` or the repo**. Mar
 
 | Variable | Scope | Used by |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | **Functions only** | agent functions |
-| `GITHUB_TOKEN` (fine-grained PAT) | **Functions only** | approve function, read-file tool |
+| `ANTHROPIC_API_KEY` | **Functions** (Pro+; all scopes on Free) | agent functions |
+| `GITHUB_TOKEN` (fine-grained PAT) | **Functions** (Pro+; all scopes on Free) | approve function, read-file tool |
 | `GITHUB_OWNER`, `GITHUB_REPO`, `GITHUB_BRANCH` | Functions | approve function |
-| `CONSOLE_PASSWORD_HASH` | **Functions only** | login |
-| `SESSION_SECRET` | **Functions only** | cookie signing |
-| `INTERNAL_JOB_SECRET` | **Functions only** | start → background function handoff |
+| `CONSOLE_PASSWORD_HASH` | **Functions** (Pro+; all scopes on Free) | login |
+| `SESSION_SECRET` | **Functions** (Pro+; all scopes on Free) | cookie signing |
+| `INTERNAL_JOB_SECRET` | **Functions** (Pro+; all scopes on Free) | start → background function handoff |
 | `AGENT_DAILY_BUDGET` (number) | Functions | rate limiting |
 
-**Scope secrets to Functions, not Builds.** If a variable is in the Builds scope, any build script or dependency `postinstall` can read it, and a bundler can inline it into client JavaScript. Keeping secrets out of the build is a second defence after the path allow-list in `04-agent-console.md`. Read them inside functions with `Netlify.env.get("NAME")` or `process.env.NAME`.
+**Scope secrets to Functions, not Builds, once the plan allows it.** If a variable is in the Builds scope, any build script or dependency `postinstall` can read it.
+
+⚠ Netlify's docs say: "On the Pro plan and above, you can set specific scopes for your environment variables." On the **Free plan (D3), secrets are also visible to builds**. Until the lead decides otherwise:
+1. build-time code (package manifests, lockfiles, `scripts/**`, `vite.config.*`) stays human-only;
+2. no secret uses a `VITE_` prefix (Vite inlines only `VITE_*`);
+3. CI scans `dist/` for secrets;
+4. humans review dependency install scripts.
+
+See `knowledge/netlify-engineer/docs/environment-variables.md`. Read them inside functions with `Netlify.env.get("NAME")` or `process.env.NAME`.
 
 Contexts: use a **separate, low-limit Anthropic key** and **no GitHub token** for Deploy Previews and branch deploys, so a preview can never commit.
 
