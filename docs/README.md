@@ -13,10 +13,11 @@ These docs are the shared context for the team of expert agents that will build 
 | 03 | [Architecture: static site + Netlify Functions](03-architecture.md) | Repo layout, `netlify.toml`, functions, Netlify Blobs, env vars, deploy flow |
 | 04 | [Agent Console: design, security, long jobs](04-agent-console.md) | Agent listing, chat over the Claude API, propose/approve/commit, auth, tokens, allow-list, rate limits, background jobs |
 | 05 | [Testing and accessibility](05-testing-and-accessibility.md) | Vitest, Playwright, axe, security tests, WCAG 2.2 AA |
-| — | [Expert roster](expert-roster.md) | Who is on the agent team, what each role does, the skills they share, and who reviews what |
+| — | [Expert roster](expert-roster.md) | Who is on the agent team, what each role does, the skills they share, and who reviews what. The agents live in `.claude/agents/` and the skills in `.claude/skills/`; see `CLAUDE.md` |
 
 ## Key decisions (summary)
 
+0. **Lead decisions D1–D4** (below) override anything else in these docs.
 1. **A PWA, not a native app, for v1.** Everything needed works on the web. iOS has no install prompt, so we show an "Add to Home Screen" hint. Capacitor only becomes worth it for store listing, widgets, background location or reliable scheduled notifications. → 02
 2. **Score hours, then summarise days.** Hard safety gates come first: lightning (WMO codes 95/96/99), NWS heat-index danger at 103 °F, and very rough sea. Then weighted comfort: rain, sky, wind (Beaufort), feels-like, sea, water temperature. UV is shown as EPA advice, not a penalty. The output is a verdict, a best time window and plain-language reasons. → 01
 3. **The browser talks only to our own origin.** `/api/forecast` proxies Open-Meteo for a fixed list of beaches, scores the forecast, and is CDN-cached for about 20 minutes. That keeps us well inside the free limits (10,000 calls/day, non-commercial, CC BY 4.0 attribution required) and allows a strict CSP. → 03
@@ -36,12 +37,19 @@ These docs are the shared context for the team of expert agents that will build 
    - axe runs with the `wcag22aa` tag;
    - manual VoiceOver and TalkBack passes before each release. → 05
 
+## Decisions by the project lead (2026-11-26)
+
+| # | Decision | Effect |
+|---|---|---|
+| D1 | **No rip-current proxy.** The app never estimates rip-current risk from waves, wind or anything else. It **links out to the National Weather Service** surf zone / rip current forecast for each beach. | Wave height is scored only as sea comfort and rough surf, never labelled as rip-current risk. Every beach in `beaches.json` gets an NWS link. (01) |
+| D2 | **Approve commits straight to `main`.** No pull-request or branch flow. | `main` must not have a "require pull request" protection rule. Commits go through the Git Data API with `force: false`. (04) |
+| D3 | **Stay on the Netlify Free plan for now.** | Use only features available on Free: Functions, background functions, Blobs, per-function rate limits (per domain + IP). Don't rely on site password protection, Basic-Auth headers or other paid features. Keep function use low with CDN caching and agent budgets. (03, 04) |
+| D4 | **Use a fine-grained personal access token** for GitHub (not a GitHub App or OAuth app). | One repo only, Contents read/write plus Metadata read, no Workflows, 90-day expiry. (04) |
+
 ## Open questions for the team
 
-- **Rip-current risk:** add NWS Surf Zone Forecast or alert data, from NWS Miami and NWS Key West, in v1.1? It is the biggest safety gap. (01)
 - **Marine `forecast_days`:** the Open-Meteo docs disagree on the maximum. Check against the live API and handle partial days. (01)
 - **Beach coordinates** in the seed list are approximate. Check them on a map, and add offshore marine points where needed. (01)
-- **Branch protection on `main`:** v1 commits directly. Switching to PR + Deploy Preview needs an extra token permission (Pull requests: write). (04)
 - **Scoring heuristics** (wave, gust and water-temperature thresholds and the weights) are our assumptions, not official values. Tune them with real days and user feedback. (01)
 - **Netlify CDN cache headers:** confirm the exact `Netlify-CDN-Cache-Control` behaviour while implementing `/api/forecast`. (03)
 

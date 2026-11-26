@@ -101,7 +101,7 @@ These are approximate coordinates. **A frontend or data agent must check each on
 | `jupiter` | Jupiter Beach | 26.9342 | -80.0716 |
 | `smathers` | Smathers Beach, Key West | 24.5513 | -81.7700 |
 
-Keep the list in one JSON file (`src/data/beaches.json`) with an `id`, `name`, `lat`, `lon`, optional `marineLat`/`marineLon`, and a `facing` compass bearing (east-facing Atlantic beaches vs. the south-facing Key West shore). `facing` lets a later version tell onshore from offshore wind.
+Keep the list in one JSON file (`src/data/beaches.json`) with an `id`, `name`, `lat`, `lon`, optional `marineLat`/`marineLon`, an `nwsRipCurrentUrl` (decision D1), and a `facing` compass bearing (east-facing Atlantic beaches vs. the south-facing Key West shore). `facing` lets a later version tell onshore from offshore wind.
 
 ## Scoring model
 
@@ -119,7 +119,7 @@ Keep the list in one JSON file (`src/data/beaches.json`) with an `id`, `name`, `
 |---|---|---|
 | Lightning | `weather_code` ∈ {95, 96, 99} → hour is **No-go** | NWS: "When thunder roars, go indoors" and "wait 30 minutes after the last lightning or thunder before going back outside." The hour **after** a thunderstorm hour is also capped at "Poor". |
 | Dangerous heat | `apparent_temperature` ≥ 103 °F → cap at "Poor"; ≥ 125 °F → No-go | NWS heat index categories: Caution 80–90 °F, Extreme Caution 90–103 °F, Danger 103–124 °F, Extreme Danger ≥ 125 °F. NWS also notes that the values are for shade and **full sun can add up to 15 °F**. |
-| Rough sea (heuristic) | `wave_height` ≥ 6 ft → No-go for swimming; ≥ 4 ft → cap at "Fair" | **Heuristic.** Open-Meteo does not give rip-current risk. Big surf is a proxy only (see *Gaps*). |
+| Rough surf (heuristic) | `wave_height` ≥ 6 ft → No-go for swimming; ≥ 4 ft → cap at "Fair" | **Heuristic** for surf comfort only. **Decision D1: this is not a rip-current estimate**, and the UI must never call it one. Rip currents form in calm-looking water too. |
 | Strong gusts (heuristic) | `wind_gusts_10m` ≥ 35 mph → cap at "Poor" | **Heuristic**, anchored to Beaufort (see below). |
 
 ### Comfort components (per hour, 0–100 each, weighted)
@@ -170,19 +170,19 @@ At 3 pm the same day: rain 60 %, code 95 → **No-go** (lightning gate). The day
 ## Safety messaging (required in the UI)
 
 - A short footer on every forecast: *"Beach Day is a comfort guide, not a safety service. Marine forecasts are less accurate near the coast. Always swim near a lifeguard and follow the flags."*
-- **Rip currents are not in Open-Meteo.** The NWS issues rip-current risk in its Surf Zone Forecasts at three levels:
+- **Rip currents: link out, never estimate (decision D1).** Open-Meteo has no rip-current data, and the app does not derive any. Every beach view shows a link such as "Rip current risk: check the National Weather Service forecast" that opens the NWS surf zone / rip current forecast for that beach. Each beach in `beaches.json` has an `nwsRipCurrentUrl`, checked by a human before launch; the fallback is the NWS index of offices that issue surf zone forecasts, https://www.weather.gov/safety/ripcurrent-forecasts. The NWS issues rip-current risk at three levels:
   - **Low:** rip currents are still possible, especially near groins, jetties, reefs and piers.
   - **Moderate:** life-threatening rip currents are possible.
   - **High:** life-threatening rip currents are likely; dangerous for all swimmers.
 
-  For South Florida these come from NWS Miami (and NWS Key West for the Keys). The app should link to them for every beach.
+  For South Florida these come from NWS Miami (and NWS Key West for the Keys). The app shows the levels' meaning only as help text next to the link. It never shows a level of its own.
 - Lightning message on storm hours: "When thunder roars, go indoors. Wait 30 minutes after the last thunder." (NWS)
 
 ## Gaps and future data sources
 
 | Gap | Why it matters | Possible source (to check before use) |
 |---|---|---|
-| Rip current risk | Leading weather-related danger at Florida beaches | NWS Surf Zone Forecast; NWS alerts such as Rip Current / Beach Hazards statements via `api.weather.gov` |
+| Rip current risk | Leading weather-related danger at Florida beaches | **Decided (D1): link out to NWS; no proxy and no import of NWS data in v1.** |
 | Water quality | Bacteria advisories close swimming | Florida Department of Health "Healthy Beaches" program. Its advisories are triggered at enterococci ≥ 71 CFU per 100 mL (as reported second-hand; confirm on the FDOH site) |
 | Sargassum seaweed | Smell (hydrogen sulfide) and skin irritation from organisms living in it | FDOH county pages; satellite outlooks |
 | Red tide | Respiratory irritation | Florida FWC red tide status |

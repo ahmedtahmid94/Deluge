@@ -105,6 +105,8 @@ Notes:
 | Streaming response | **60 s** execution, **20 MB** response | No |
 | Background function execution | **15 minutes** | No |
 
+**Plan: Netlify Free (decision D3).** Functions, background functions, Blobs and per-function rate limits (aggregated per domain + IP) are all available on Free; site password protection and Basic-Auth headers are not relied on. Free has a monthly usage allowance, so CDN caching and the agent budgets are also there to stay inside it. If a limit is hit, the lead decides whether to upgrade.
+
 Background functions are declared with `export const config = { background: true, path: ... }` (or the older `-background` filename suffix). The caller gets an **immediate `202`**, **no response body and no streaming**. On error, Netlify **retries after 1 minute and again 2 minutes later**. Background functions are available on credit-based plans (Free, Personal, Pro) and Enterprise.
 
 Implications:

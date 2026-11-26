@@ -54,7 +54,7 @@ Eleven roles are required. Two more are added because this app really needs them
 
 ### Working rules for every agent
 
-1. **Agents propose; the human approves.** No agent commits. Code changes go through the console's `propose_changes`, or through a reviewed change in a Claude Code session.
+1. **Agents propose; the human approves.** No agent commits. Experts never call each other: every handoff goes through the orchestrator, which runs independent work in parallel (see `CLAUDE.md`). Code changes go through the console's `propose_changes`, or through a reviewed change in a Claude Code session.
 2. **Stay inside the path allow-list** in `04-agent-console.md`. Changes to `netlify/**`, `netlify.toml`, package manifests, `scripts/**` and `.github/**` are made by humans. The Netlify, security and console engineers *design* those changes and hand them to the lead.
 3. **Every change states its reviewers.** The table in section 3 says who must review what.
 
@@ -215,10 +215,99 @@ These are the skills that need common conventions and docs, because most of the 
 | Secrets management | 3 agents |
 | Path allow-list enforcement | 3 agents |
 
-`meta-agent` should turn the most shared of these into reusable Claude Code skills (`.claude/skills/`) so each agent loads the same guidance. Candidates:
+Every skill above is a project skill in `.claude/skills/<name>/SKILL.md`, and every agent preloads its skills through the `skills:` field of its file in `.claude/agents/` (see section 5).
 
-- `netlify-functions`
-- `open-meteo`
-- `wcag22-checks`
-- `vitest-fixtures`
-- `path-allowlist`
+---
+
+## 5. Built files
+
+How to run the team, and the handoff format, are in `CLAUDE.md`.
+
+### Skill files
+
+| Roster skill | Skill file | Owner | Shared with |
+|---|---|---|---|
+| Task breakdown and planning | `.claude/skills/task-planning/SKILL.md` | orchestrator | software-architect, meta-agent |
+| Delegation and routing | `.claude/skills/delegation-routing/SKILL.md` | orchestrator | meta-agent |
+| Review aggregation | `.claude/skills/review-aggregation/SKILL.md` | orchestrator | software-architect |
+| Agent definition authoring | `.claude/skills/agent-definition-authoring/SKILL.md` | meta-agent | orchestrator, agent-console-engineer |
+| Prompt design and evaluation | `.claude/skills/prompt-design-evaluation/SKILL.md` | meta-agent | agent-console-engineer, orchestrator |
+| Least-privilege tool scoping | `.claude/skills/least-privilege-tools/SKILL.md` | meta-agent | security-engineer |
+| Static + serverless architecture | `.claude/skills/static-serverless-architecture/SKILL.md` | software-architect | netlify-engineer, agent-console-engineer, open-meteo-integrator |
+| TypeScript and modern JavaScript | `.claude/skills/typescript-conventions/SKILL.md` | software-architect | pwa-engineer, open-meteo-integrator, agent-console-engineer, netlify-engineer, qa-engineer, beach-conditions-analyst |
+| Vite build tooling | `.claude/skills/vite-build/SKILL.md` | pwa-engineer | software-architect, netlify-engineer |
+| Data contracts and typing | `.claude/skills/data-contracts/SKILL.md` | software-architect | open-meteo-integrator, agent-console-engineer, beach-conditions-analyst |
+| Pure, testable domain modules | `.claude/skills/pure-domain-modules/SKILL.md` | software-architect | beach-conditions-analyst, qa-engineer, security-engineer |
+| Open-Meteo Forecast API | `.claude/skills/open-meteo-forecast-api/SKILL.md` | open-meteo-integrator | beach-conditions-analyst |
+| Open-Meteo Marine API | `.claude/skills/open-meteo-marine-api/SKILL.md` | open-meteo-integrator | beach-conditions-analyst |
+| API rate limits and caching | `.claude/skills/api-rate-limits-caching/SKILL.md` | open-meteo-integrator | netlify-engineer, pwa-engineer |
+| Meteorology for beachgoers | `.claude/skills/beach-meteorology/SKILL.md` | beach-conditions-analyst | open-meteo-integrator, ux-designer-apple-hig |
+| Scoring model design | `.claude/skills/beach-scoring-model/SKILL.md` | beach-conditions-analyst | qa-engineer, software-architect |
+| Safety communication | `.claude/skills/safety-communication/SKILL.md` | beach-conditions-analyst | ux-designer-apple-hig, security-engineer |
+| Web app manifest and icons | `.claude/skills/web-app-manifest/SKILL.md` | pwa-engineer | ui-designer-apple-liquid-glass |
+| Service workers and caching | `.claude/skills/service-worker-caching/SKILL.md` | pwa-engineer | netlify-engineer, security-engineer, qa-engineer |
+| iOS and Android install behaviour | `.claude/skills/ios-android-install/SKILL.md` | pwa-engineer | ux-designer-apple-hig, qa-engineer |
+| Offline and poor-network UX | `.claude/skills/offline-ux/SKILL.md` | pwa-engineer | ux-designer-apple-hig |
+| Front-end implementation | `.claude/skills/frontend-implementation/SKILL.md` | pwa-engineer | agent-console-engineer, ui-designer-apple-liquid-glass, accessibility-specialist |
+| Mobile web performance | `.claude/skills/mobile-web-performance/SKILL.md` | pwa-engineer | software-architect, qa-engineer |
+| Native-wrapper judgement (Capacitor) | `.claude/skills/native-wrapper-judgement/SKILL.md` | pwa-engineer | software-architect |
+| Apple Liquid Glass visual language | `.claude/skills/apple-liquid-glass/SKILL.md` | ui-designer-apple-liquid-glass | pwa-engineer |
+| Apple Human Interface Guidelines | `.claude/skills/apple-hig/SKILL.md` | ux-designer-apple-hig | ui-designer-apple-liquid-glass, accessibility-specialist |
+| Visual design system | `.claude/skills/visual-design-system/SKILL.md` | ui-designer-apple-liquid-glass | pwa-engineer, accessibility-specialist |
+| Interaction and flow design | `.claude/skills/interaction-flow-design/SKILL.md` | ux-designer-apple-hig | agent-console-engineer, pwa-engineer |
+| Information design for forecasts | `.claude/skills/forecast-information-design/SKILL.md` | ux-designer-apple-hig | beach-conditions-analyst, ui-designer-apple-liquid-glass |
+| UX writing | `.claude/skills/ux-writing/SKILL.md` | ux-designer-apple-hig | beach-conditions-analyst, ui-designer-apple-liquid-glass |
+| Motion with restraint | `.claude/skills/restrained-motion/SKILL.md` | ui-designer-apple-liquid-glass | accessibility-specialist |
+| WCAG 2.2 AA | `.claude/skills/wcag-22-aa/SKILL.md` | accessibility-specialist | ux-designer-apple-hig, ui-designer-apple-liquid-glass, qa-engineer, pwa-engineer |
+| Contrast on translucent surfaces | `.claude/skills/translucent-contrast/SKILL.md` | accessibility-specialist | ui-designer-apple-liquid-glass |
+| ARIA patterns and live regions | `.claude/skills/aria-patterns-live-regions/SKILL.md` | accessibility-specialist | agent-console-engineer, pwa-engineer |
+| Assistive-technology testing | `.claude/skills/assistive-tech-testing/SKILL.md` | accessibility-specialist | qa-engineer |
+| Automated a11y testing | `.claude/skills/automated-a11y-testing/SKILL.md` | accessibility-specialist | qa-engineer |
+| Claude Messages API | `.claude/skills/claude-messages-api/SKILL.md` | agent-console-engineer | meta-agent |
+| Claude tool use | `.claude/skills/claude-tool-use/SKILL.md` | agent-console-engineer | meta-agent, security-engineer |
+| Claude streaming | `.claude/skills/claude-streaming/SKILL.md` | agent-console-engineer | netlify-engineer |
+| Long-running job design | `.claude/skills/long-running-jobs/SKILL.md` | agent-console-engineer | netlify-engineer, software-architect |
+| GitHub REST API (contents and Git data) | `.claude/skills/github-commits-api/SKILL.md` | agent-console-engineer | security-engineer |
+| Diff and review UI | `.claude/skills/diff-review-ui/SKILL.md` | agent-console-engineer | ux-designer-apple-hig, accessibility-specialist |
+| Model and cost management | `.claude/skills/model-cost-management/SKILL.md` | agent-console-engineer | meta-agent, orchestrator |
+| Threat modelling | `.claude/skills/threat-modelling/SKILL.md` | security-engineer | software-architect, agent-console-engineer |
+| Authentication and sessions | `.claude/skills/auth-sessions/SKILL.md` | security-engineer | agent-console-engineer |
+| Secrets management | `.claude/skills/secrets-management/SKILL.md` | security-engineer | netlify-engineer, agent-console-engineer |
+| GitHub fine-grained tokens | `.claude/skills/github-fine-grained-token/SKILL.md` | security-engineer | agent-console-engineer |
+| Path allow-list enforcement | `.claude/skills/path-allowlist/SKILL.md` | security-engineer | agent-console-engineer, qa-engineer |
+| Prompt-injection defence | `.claude/skills/prompt-injection-defence/SKILL.md` | security-engineer | agent-console-engineer, meta-agent |
+| Web security headers | `.claude/skills/web-security-headers/SKILL.md` | security-engineer | netlify-engineer |
+| Abuse and spend control | `.claude/skills/abuse-spend-control/SKILL.md` | security-engineer | netlify-engineer, agent-console-engineer |
+| `netlify.toml` and build config | `.claude/skills/netlify-config/SKILL.md` | netlify-engineer | software-architect |
+| Netlify Functions | `.claude/skills/netlify-functions/SKILL.md` | netlify-engineer | agent-console-engineer, open-meteo-integrator |
+| Netlify Blobs | `.claude/skills/netlify-blobs/SKILL.md` | netlify-engineer | agent-console-engineer |
+| Environment variables and contexts | `.claude/skills/netlify-env-vars/SKILL.md` | netlify-engineer | security-engineer |
+| CDN caching | `.claude/skills/cdn-caching/SKILL.md` | netlify-engineer | open-meteo-integrator, pwa-engineer |
+| Deploys, previews and rollback | `.claude/skills/netlify-deploys/SKILL.md` | netlify-engineer | qa-engineer, orchestrator |
+| Local development (`netlify dev`) | `.claude/skills/netlify-local-dev/SKILL.md` | netlify-engineer | qa-engineer, agent-console-engineer, open-meteo-integrator |
+| Test strategy | `.claude/skills/test-strategy/SKILL.md` | qa-engineer | software-architect, orchestrator |
+| Unit and function tests (Vitest) | `.claude/skills/vitest-testing/SKILL.md` | qa-engineer | beach-conditions-analyst, security-engineer, agent-console-engineer, open-meteo-integrator |
+| End-to-end tests (Playwright) | `.claude/skills/playwright-e2e/SKILL.md` | qa-engineer | pwa-engineer, accessibility-specialist |
+| Contract testing | `.claude/skills/contract-testing/SKILL.md` | qa-engineer | open-meteo-integrator |
+| CI and release gates | `.claude/skills/ci-release-gates/SKILL.md` | qa-engineer | netlify-engineer, security-engineer |
+| Real-device testing | `.claude/skills/real-device-testing/SKILL.md` | qa-engineer | pwa-engineer, accessibility-specialist |
+
+### Agent wiring (`skills:` in each agent file)
+
+Each agent preloads the skills it owns or shares (section 2). The limit is 32 per agent.
+
+| Agent | Preloaded skills (`skills:`) |
+|---|---|
+| `orchestrator` | `task-planning`, `delegation-routing`, `review-aggregation`, `agent-definition-authoring`, `prompt-design-evaluation`, `model-cost-management`, `netlify-deploys`, `test-strategy` |
+| `meta-agent` | `task-planning`, `delegation-routing`, `agent-definition-authoring`, `prompt-design-evaluation`, `least-privilege-tools`, `claude-messages-api`, `claude-tool-use`, `model-cost-management`, `prompt-injection-defence` |
+| `software-architect` | `task-planning`, `review-aggregation`, `static-serverless-architecture`, `typescript-conventions`, `vite-build`, `data-contracts`, `pure-domain-modules`, `beach-scoring-model`, `mobile-web-performance`, `native-wrapper-judgement`, `long-running-jobs`, `threat-modelling`, `netlify-config`, `test-strategy` |
+| `open-meteo-integrator` | `static-serverless-architecture`, `typescript-conventions`, `data-contracts`, `open-meteo-forecast-api`, `open-meteo-marine-api`, `api-rate-limits-caching`, `beach-meteorology`, `netlify-functions`, `cdn-caching`, `netlify-local-dev`, `vitest-testing`, `contract-testing` |
+| `beach-conditions-analyst` | `typescript-conventions`, `data-contracts`, `pure-domain-modules`, `open-meteo-forecast-api`, `open-meteo-marine-api`, `beach-meteorology`, `beach-scoring-model`, `safety-communication`, `forecast-information-design`, `ux-writing`, `vitest-testing` |
+| `pwa-engineer` | `typescript-conventions`, `vite-build`, `api-rate-limits-caching`, `web-app-manifest`, `service-worker-caching`, `ios-android-install`, `offline-ux`, `frontend-implementation`, `mobile-web-performance`, `native-wrapper-judgement`, `apple-liquid-glass`, `visual-design-system`, `interaction-flow-design`, `wcag-22-aa`, `aria-patterns-live-regions`, `cdn-caching`, `playwright-e2e`, `real-device-testing` |
+| `ui-designer-apple-liquid-glass` | `web-app-manifest`, `frontend-implementation`, `apple-liquid-glass`, `apple-hig`, `visual-design-system`, `forecast-information-design`, `ux-writing`, `restrained-motion`, `wcag-22-aa`, `translucent-contrast` |
+| `ux-designer-apple-hig` | `beach-meteorology`, `safety-communication`, `ios-android-install`, `offline-ux`, `apple-hig`, `interaction-flow-design`, `forecast-information-design`, `ux-writing`, `wcag-22-aa`, `diff-review-ui` |
+| `accessibility-specialist` | `frontend-implementation`, `apple-hig`, `visual-design-system`, `restrained-motion`, `wcag-22-aa`, `translucent-contrast`, `aria-patterns-live-regions`, `assistive-tech-testing`, `automated-a11y-testing`, `diff-review-ui`, `playwright-e2e`, `real-device-testing` |
+| `agent-console-engineer` | `agent-definition-authoring`, `prompt-design-evaluation`, `static-serverless-architecture`, `typescript-conventions`, `data-contracts`, `frontend-implementation`, `interaction-flow-design`, `aria-patterns-live-regions`, `claude-messages-api`, `claude-tool-use`, `claude-streaming`, `long-running-jobs`, `github-commits-api`, `diff-review-ui`, `model-cost-management`, `threat-modelling`, `auth-sessions`, `secrets-management`, `github-fine-grained-token`, `path-allowlist`, `prompt-injection-defence`, `abuse-spend-control`, `netlify-functions`, `netlify-blobs`, `netlify-local-dev`, `vitest-testing` |
+| `security-engineer` | `least-privilege-tools`, `pure-domain-modules`, `safety-communication`, `service-worker-caching`, `claude-tool-use`, `github-commits-api`, `threat-modelling`, `auth-sessions`, `secrets-management`, `github-fine-grained-token`, `path-allowlist`, `prompt-injection-defence`, `web-security-headers`, `abuse-spend-control`, `netlify-env-vars`, `vitest-testing`, `ci-release-gates` |
+| `netlify-engineer` | `static-serverless-architecture`, `typescript-conventions`, `vite-build`, `api-rate-limits-caching`, `service-worker-caching`, `claude-streaming`, `long-running-jobs`, `secrets-management`, `web-security-headers`, `abuse-spend-control`, `netlify-config`, `netlify-functions`, `netlify-blobs`, `netlify-env-vars`, `cdn-caching`, `netlify-deploys`, `netlify-local-dev`, `ci-release-gates` |
+| `qa-engineer` | `typescript-conventions`, `pure-domain-modules`, `beach-scoring-model`, `service-worker-caching`, `ios-android-install`, `mobile-web-performance`, `wcag-22-aa`, `assistive-tech-testing`, `automated-a11y-testing`, `path-allowlist`, `netlify-deploys`, `netlify-local-dev`, `test-strategy`, `vitest-testing`, `playwright-e2e`, `contract-testing`, `ci-release-gates`, `real-device-testing` |

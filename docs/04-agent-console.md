@@ -145,7 +145,7 @@ Design rules:
 - **Progress writes:** buffer streamed text and write to Blobs every 1–2 s or every 2 KB. A write per token would be slow and costly. Each write appends events with a growing `seq`; status polls pass `?after=seq`.
 - **Strong consistency** on the `jobs` and `proposals` stores, so a poll right after a write sees it.
 - **Short replies:** for a plain question with no tools, a *streaming* sync function (60 s) would feel faster. Keep it as an option, but v1 uses one path (background + poll) for everything. It is simpler and survives screen-off on phones.
-- **Cleanup:** delete jobs older than 7 days, using a Netlify scheduled function or lazily on read.
+- **Cleanup:** delete jobs older than 7 days lazily, when a session lists or reads jobs. No scheduled function is needed, which keeps us simple on the Free plan (D3).
 
 ---
 
@@ -211,7 +211,7 @@ All writes go through the GitHub REST API with `Authorization: Bearer $GITHUB_TO
 - **Every** console function checks the session first. A route not covered by that check is a bug; add a test that calls every `/api/agent*` and `/api/proposals*` route without a cookie and expects 401.
 - **Brute force:** apply Netlify's `rateLimit` on the login function (for example `windowLimit: 5, windowSize: 60, aggregateBy: ["ip", "domain"]`). Also keep a failed-attempt counter per IP hash in Blobs that locks the IP out for 15 minutes after 10 failures.
 - Logout deletes the session from Blobs.
-- Optional extra layer: Netlify's site-wide password protection or Basic-Auth headers, plan-dependent, covering only `/console/*`. It doesn't replace the function-level checks.
+- No Netlify site password protection or Basic-Auth layer: those aren't part of the Free plan (decision D3). The function-level gate above is the whole gate, so its tests matter.
 - The UI never shows whether the account or the password was wrong; it says only "Incorrect password".
 
 ### GitHub fine-grained personal access token
@@ -226,7 +226,8 @@ Create it under GitHub → Settings → Developer settings → Fine-grained toke
 - **Expiration:** 90 days, with a calendar reminder to rotate. (Allowed range is 1–366 days or none; organisations can enforce a maximum.)
 - If the repo is in an organisation that requires approval, the token stays `pending` with read-only public access until an admin approves it.
 - Store it only as `GITHUB_TOKEN` in Netlify env vars, Functions scope, marked secret. Never in the repo, the client bundle or logs.
-- **Branch protection:** if `main` requires pull requests, direct commits fail. Either keep `main` unprotected for this single-owner project, or change step 5 to commit to `agent/<proposal-id>`, open a PR (which needs the extra *Pull requests: write* permission), and let Netlify build a Deploy Preview. v1 recommendation: **commit directly to `main`**, as the brief asks; the PR flow is a documented upgrade.
+- **Decision D4:** GitHub access uses this fine-grained personal access token, not a GitHub App or OAuth app.
+- **Branch protection (decision D2):** Approve **commits straight to `main`**. There is no pull-request or agent-branch flow, so the token needs no *Pull requests* permission. `main` must not have a rule that requires pull requests, or every approval fails. Rely on `force: false` on the ref update and the conflict check in step 4. Blocking force pushes and branch deletion on `main` is fine and recommended.
 
 ### Path allow-list (enforced in code)
 
@@ -235,7 +236,7 @@ Agents may change **only**:
 ```
 src/app/**          src/shared/**        src/console/ui/**
 public/icons/**     public/screens/**    src/data/beaches.json
-tests/**            docs/**              .claude/agents/**   (see note)
+tests/**            docs/**              .claude/agents/**   .claude/skills/**   (see note)
 ```
 
 Agents may **never** change (deny wins over allow):
@@ -245,6 +246,7 @@ netlify/**            netlify.toml          public/_headers   public/_redirects
 package.json          package-lock.json     pnpm-lock.yaml    .npmrc
 .github/**            scripts/**            vite.config.*     tsconfig*.json
 src/console/server/** src/shared/models.ts  .env*             **/*.pem  **/*.key
+CLAUDE.md
 ```
 
 Why deny these:
@@ -257,7 +259,7 @@ Why deny these:
 
 Changes in those areas are made by a human in their own editor.
 
-Note on `.claude/agents/**`: allowing it lets agents edit their own prompts. That is useful ("add a QA agent"), but every such diff should be reviewed with extra care. An option is a second confirmation in the UI for changes to agent files.
+Note on `.claude/agents/**` and `.claude/skills/**`: allowing them lets agents edit their own prompts and skills. `CLAUDE.md` stays human-only because it holds the team rules every agent loads. That is useful ("add a QA agent"), but every such diff should be reviewed with extra care. An option is a second confirmation in the UI for changes to agent files.
 
 Validation function (shared by proposal and approval):
 
@@ -287,7 +289,7 @@ Validation function (shared by proposal and approval):
 | Per job | ≤ 12 tool iterations, `max_tokens` cap, ≤ 12 min wall time |
 | Concurrency | ≤ 2 running jobs per session |
 | Anthropic Console | A monthly **spend limit** on the workspace that owns the key (the hard backstop) |
-| Netlify plan | Usage alerts for function invocations |
+| Netlify plan | **Free (decision D3).** Watch the usage page; the daily budget and CDN caching keep us within the free allowance |
 
 Netlify rate limits are in each function's `config` object (`windowLimit`, `windowSize` in seconds up to 180, `aggregateBy: ["ip", "domain"]`, and `action: "rate_limit"` or `"rewrite"`). **They cannot be set in `netlify.toml`.** Blobs counters are approximate (last write wins), which is fine for a budget. The hard guarantee is the Anthropic spend limit.
 
