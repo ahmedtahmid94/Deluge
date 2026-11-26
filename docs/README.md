@@ -13,6 +13,7 @@ These docs are the shared context for the team of expert agents that will build 
 | 03 | [Architecture: static site + Netlify Functions](03-architecture.md) | Repo layout, `netlify.toml`, functions, Netlify Blobs, env vars, deploy flow |
 | 04 | [Agent Console: design, security, long jobs](04-agent-console.md) | Agent listing, chat over the Claude API, propose/approve/commit, auth, tokens, allow-list, rate limits, background jobs |
 | 05 | [Testing and accessibility](05-testing-and-accessibility.md) | Vitest, Playwright, axe, security tests, WCAG 2.2 AA |
+| — | [Expert roster](expert-roster.md) | Who is on the agent team, what each role does, the skills they share, and who reviews what |
 
 ## Key decisions (summary)
 
